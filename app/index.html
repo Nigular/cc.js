@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <title>h5基本框架</title>
     <script src="jsSrc/cc.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript">
+    	var cc = new cc({width:750,height:1100,debug:true});
+    </script>
     <link rel="stylesheet" href="css/base.css">
     <style>
         .box{width: 7.5rem;height: 3rem;background-color: chocolate;}
@@ -15,25 +18,43 @@
     <p>设计稿宽度是750px。在cc.js里配置好设计宽度为750后，给box添加宽度为7.5rem就相当于屏幕的宽度了。</p>
     <p>在url后面加上?debug=true，就能开启手机端的debug模式</p>
     <div class="box2">
-        <img src="images/t1.png" alt="" data-id="10" class="ewm" id="tt"/>
-        <img src="images/t2.png" alt="" data-id="20" class="ewm"/>
-        <img src="images/t1.png" alt="" data-id="10" class="ewm2"/>
-        <img src="images/t1.png" alt="" data-id="10" class="ewm"/>
+        <img src="images/t1.png" alt="" data-id="10" class="ewm" id="p1"/>
+        <img src="images/t2.png" alt="" data-id="20" class="ewm" id="p2"/>
+        <img src="images/t1.png" alt="" data-id="10" class="ewm" id="p3"/>
+        <img src="images/t1.png" alt="" data-id="10" class="ewm" id="p4"/>
     </div>
+    <button id="btn1">隐藏第一个图片</button>
+    <button id="btn2">显示第一个图片</button>
+    <button id="btn3">给多个图片加描边</button>
+<script src="extends/loader.js" type="text/javascript" charset="utf-8"></script>
 <script>
-    var audio = new Audio();
+	var audio = new Audio();
 	audio.src = 'audio/bgm.mp3';
 	audio.loop = true;
-	//audio.autoPlay();
-    cc.require(['ua','query'],function(ua,query){
-        //cc.debug.getTimes();
-        //alert(ua);
-        var ewm = query.one('.ewm2');
-        query.class('box2')[0].delegate(ewm,'touchstart',function(obj){
-            console.log(obj.dataset.id);
-        })
+	audio.autoPlay();
+	cc.ajax({
+	   	type:'get',
+	   	url:'jsSrc/test.json',
+	   	success:function(ret){
+	   		console.log(ret)
+	   	}
+	});
+	//加载器
+    cc.loader.init(['images/t1.png','images/t2.png'], function(percentage){
+        console.log(percentage);
     });
     
+    var p1 = cc.query.id('p1');
+    cc.query.id('btn1').on("click",function(){
+    	cc.hide(p1);
+    });
+    cc.query.id('btn2').on("click",function(){
+    	cc.show(p1);
+    });
+    cc.query.id('btn3').on("click",function(){
+    	var ewm = cc.query.class("ewm");
+    	cc.setCss(ewm,{"border":"2px solid #999","margin-bottom":"0.2rem"});
+    });
 </script>
 </body>
 </html>

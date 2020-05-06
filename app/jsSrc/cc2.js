@@ -13,7 +13,8 @@ function cc(config){
 		};
 	}
 	/** 
-	 * 为文档元素扩展方法
+	 * 为文档元素添加on和off的绑定事件和解绑事件 
+	 * 为元素扩展delegate代理委托事件
 	 * */
 	if (window.Element) {
 		Element.prototype.on = Element.prototype.addEventListener;
@@ -21,13 +22,13 @@ function cc(config){
 		Element.prototype.delegate = function(dom,ev,callback){
 			this.addEventListener(ev,function(event){
 				var target = event.target || event.srcElement;
-				if(dom instanceof HTMLCollection || dom instanceof NodeList){
+				if(dom.length){
 					for(let i=0;i<dom.length;i++){
 						if(dom[i] === target){
 							callback(target);
 						}
 					}
-				}else if(isDOM(dom)){
+				}else{
 					// query.id()的情况没有length
 					if(dom === target){
 						callback(target);
@@ -36,13 +37,6 @@ function cc(config){
 			})
 		}
 	}
-	var isDOM = ( typeof HTMLElement === 'object' ) ?
-        function(obj){
-            return obj instanceof HTMLElement;
-        } :
-        function(obj){
-            return obj && typeof obj === 'object' && obj.nodeType === 1 && typeof obj.nodeName === 'string';
-        }
 	/** 为audio对象添加autoplay方法 */
 	if(window.Audio){
 		Audio.prototype.autoPlay = function(callback){
@@ -109,9 +103,15 @@ function cc(config){
 		var windowWidth = html.clientWidth || window.innerWidth || html.getBoundingClientRect().width;
 		var windowHeight = html.clientHeight || window.innerHeight || html.getBoundingClientRect().height;
 		var aspectRatio = windowWidth / windowHeight;
-
-		if(windowWidth>750){windowWidth=750;}
-		html.style.cssText += 'font-size:' + windowWidth * 100 / config_width + 'px!important;';
+		var windowScale=0;
+		if (!config_width || aspectRatio > config_width / config_height) {	//实际宽高比大于设计最低宽高比
+			windowScale = config_height / windowHeight;
+			html.style.cssText += 'font-size:' + windowHeight * 100 / config_height + 'px!important;';
+		} else {	//实际宽高比小于设计最低宽高比
+			
+			windowScale = config_width / windowWidth;
+			html.style.cssText += 'font-size:' + windowWidth * 100 / config_width + 'px!important;';
+		}
 		html.offsetWidth;	//触发重绘
 	}
 	if (!config_height && !config_width) {	
@@ -123,6 +123,9 @@ function cc(config){
 		cancelAnimationFrame(delay);
 		delay = requestAnimationFrame(setSize);
 	}, false);
+	window.onload=function(){
+		document.getElementsByTagName('body')[0].setAttribute('style','margin:0 auto;width:'+config.width/100+'rem');
+	}
 	
 	if (config.debug || getUrlParma('debug')) {
 		document.addEventListener('contextmenu',function(e){e.preventDefault()});
@@ -219,28 +222,6 @@ function cc(config){
             }
 		}
 	}
-	function setCss(dom,options){
-		//options是多个属性组成的对象
-		if(typeof(options) !== "object"){
-			return false;
-		}
-		var keys = Object.keys(options);
-		var values = Object.values(options);
-		//如果是一个dom节点，直接赋值
-		if(isDOM(dom)){
-			//console.log("设置单个节点");
-			for(let i in keys){
-				dom.style.setProperty(keys[i],values[i]);
-			}
-		}else if(dom instanceof HTMLCollection || dom instanceof NodeList){
-			//console.log("设置多个节点")
-			for(let i=0;i<dom.length;i++){
-				for(let j in keys){
-					dom[i].style.setProperty(keys[j],values[j]);
-				}
-			}
-		}
-	}
 	return {
 		ua : getUa(),
 		query : {
@@ -268,17 +249,6 @@ function cc(config){
 				return getUrlParma(name);
 			}
 		},
-		show:function(dom){
-			dom.style.setProperty('display','block');
-			dom.style.setProperty('visibility','visible');
-		},
-		hide:function(dom){
-			dom.style.setProperty('display','none');
-			dom.style.setProperty('visibility','hidden');
-		},
-		setCss:function(dom,option){
-			setCss(dom,option);
-		},
 		store : {
 			setLocal: function(key, value) {
 				if(window.localStorage) {
@@ -295,27 +265,19 @@ function cc(config){
 		},
 		ajax:function(options){
 			return new ajax(options)
-		},
-		loadJs:function(url, callback){
-			var script = document.createElement('script');
-			script.type = "text/javascript";
-			if(typeof(callback) != "undefined") {
-				if(script.readyState) {
-					script.onreadystatechange = function() {
-						if(script.readyState == "loaded" || script.readyState == "complete") {
-							script.onreadystatechange = null;
-							callback();
-						}
-					}
-				} else {
-					script.onload = function() {
-						callback();
-					}
-				}
-			}
-			script.src = url;
-			var head = document.head || document.getElementsByTagName('head')[0];
-			head.appendChild(script);
 		}
 	}
 }
+
+/**
+ * 初始化调用
+ * var cc = new cc({width:750,height:1100,debug:true});
+ * **/
+
+/**
+ *扩展方式
+ *cc.name = function() {
+ *	var query = this.query;
+ *	console.log(query.tag('img'));
+ *};
+**/

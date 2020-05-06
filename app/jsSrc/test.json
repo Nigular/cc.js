@@ -1,0 +1,10 @@
+{
+	"data": [{
+		"name": "lube",
+		"age": 16
+	}, {
+		"name": "kola",
+		"age": 25
+	}],
+	"code": 200
+}
